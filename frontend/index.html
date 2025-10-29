@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dicey DevOps</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>🎲 Dicey DevOps 🎲</h1>
+
+  <div class="bank">
+    Bankroll: $<span id="bank">100</span>
+  </div>
+
+  <form id="betForm">
+    <label>Bet Type:
+      <select id="betType">
+        <option value="sum">Sum (2–12)</option>
+        <option value="exactPair">Exact Pair (e.g., 1,3)</option>
+        <option value="anyDoubles">Any Doubles</option>
+        <option value="overUnder7">Over / Under / Exactly 7</option>
+      </select>
+    </label>
+
+    <div id="selectionHost"><!-- dynamic controls go here --></div>
+
+    <label>Wager ($):
+      <input id="wager" type="number" min="1" value="5" />
+    </label>
+
+    <button type="submit">Roll</button>
+  </form>
+
+  <div id="last"></div>
+  <div id="learn"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>

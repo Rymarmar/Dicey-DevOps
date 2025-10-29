@@ -1,0 +1,8 @@
+body { font-family: system-ui, sans-serif; text-align: center; padding: 3rem; }
+h1 { margin-bottom: 1rem; }
+form { display: inline-flex; gap: 1rem; align-items: center; margin: 1rem 0; flex-wrap: wrap; }
+label { display: inline-flex; gap: .4rem; align-items: center; }
+.bank { font-weight: 700; margin-bottom: .5rem; }
+#last { margin-top: 1rem; font-weight: 600; }
+#learn { margin-top: .4rem; color: #444; font-size: .95rem; }
+button { padding: .5rem 1rem; cursor: pointer; }

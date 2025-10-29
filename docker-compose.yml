@@ -1,0 +1,15 @@
+version: "3.8"
+services:
+  backend:
+    build: .
+    ports:
+      - "8080:8080"
+    container_name: dicey_backend
+
+  frontend:
+    image: nginx:alpine
+    container_name: dicey_frontend
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+    ports:
+      - "3000:80"
