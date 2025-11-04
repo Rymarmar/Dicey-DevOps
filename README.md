@@ -5,25 +5,6 @@ Frontend (HTML/JS) talks to a Node/Express API. Docker Compose serves both.
 
 ---
 
-## 🧱 Project Structure
-Dicey-DevOps/
-├─ backend/
-│ ├─ server.js
-│ ├─ package.json
-│ └─ routes/
-│ └─ dice.js
-├─ frontend/
-│ ├─ index.html
-│ ├─ script.js
-│ └─ style.css
-├─ Dockerfile
-├─ docker-compose.yml
-├─ .gitignore
-└─ README.md
-
-yaml
-Copy code
-
 ---
 
 ## 🚀 Quick Start (Docker)

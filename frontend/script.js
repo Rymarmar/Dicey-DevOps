@@ -1,11 +1,21 @@
 const API = "http://localhost:8080";
 let bank = 100;
+let streak = 0;
 
 const betTypeSel = document.getElementById("betType");
 const selectionHost = document.getElementById("selectionHost");
 const bankEl = document.getElementById("bank");
 const lastEl = document.getElementById("last");
 const learnEl = document.getElementById("learn");
+const streakBadge = document.getElementById("streakBadge");
+const rollBtn = document.getElementById("rollBtn");
+const form = document.getElementById("betForm");
+
+// dice + fx
+const diceStage = document.getElementById("diceStage");
+const die1 = document.getElementById("die1");
+const die2 = document.getElementById("die2");
+const fxLayer = document.getElementById("fx-layer");
 
 const rulesModal = document.getElementById("rulesModal");
 const openRulesBtn = document.getElementById("openRules");
@@ -13,6 +23,8 @@ const closeRulesBtn = document.getElementById("closeRules");
 const gotItBtn = document.getElementById("gotIt");
 const ruleTabs = document.querySelectorAll(".rule-tab");
 const ruleBody = document.getElementById("ruleBody");
+
+let rollTimer = null;
 
 // rules content per mode
 const RULES = {
@@ -57,7 +69,6 @@ function showRule(mode) {
 // modal open/close
 function openRules() {
   rulesModal.classList.remove("hidden");
-  // default to current selected game
   const current = betTypeSel.value;
   activateRuleTab(current);
   showRule(current);
@@ -116,7 +127,6 @@ function renderSelection() {
 }
 betTypeSel.addEventListener("change", () => {
   renderSelection();
-  // optional: sync modal tab to current selection
   activateRuleTab(betTypeSel.value);
 });
 renderSelection();
@@ -124,8 +134,85 @@ renderSelection();
 // show rules automatically the first time
 openRules();
 
-// form submit → call backend
-document.getElementById("betForm").addEventListener("submit", async (e) => {
+/* -----------------------------
+   Dice animation helpers
+------------------------------ */
+function setDiceFaces(values = [1, 1]) {
+  die1.textContent = values[0];
+  die2.textContent = values[1];
+}
+
+function startDiceRoll() {
+  diceStage.classList.add("rolling");
+  rollBtn.disabled = true;
+
+  // change numbers while spinning so it feels alive
+  rollTimer = setInterval(() => {
+    const r1 = 1 + Math.floor(Math.random() * 6);
+    const r2 = 1 + Math.floor(Math.random() * 6);
+    setDiceFaces([r1, r2]);
+  }, 110);
+}
+
+function stopDiceRoll(finalDice, isWin = false) {
+  if (rollTimer) {
+    clearInterval(rollTimer);
+    rollTimer = null;
+  }
+  diceStage.classList.remove("rolling");
+  setDiceFaces(finalDice);
+  rollBtn.disabled = false;
+
+  if (isWin) {
+    diceStage.classList.add("win");
+    setTimeout(() => diceStage.classList.remove("win"), 500);
+  }
+}
+
+/* -----------------------------
+   FX: confetti + floating text
+------------------------------ */
+function spawnConfetti() {
+  const count = 12;
+  const baseX = diceStage.offsetLeft + 10;
+  const baseY = diceStage.offsetTop + 5;
+  const colors = ["#6366f1", "#f97316", "#22c55e", "#e11d48"];
+
+  for (let i = 0; i < count; i++) {
+    const c = document.createElement("div");
+    c.className = "confetti";
+    c.style.left = baseX + 20 + Math.random() * 50 + "px";
+    c.style.top = baseY + 10 + "px";
+    c.style.background = colors[i % colors.length];
+    // random horizontal drift
+    const dx = (Math.random() * 60 - 30).toFixed(0) + "px";
+    c.style.setProperty("--dx", dx);
+    fxLayer.appendChild(c);
+    setTimeout(() => c.remove(), 650);
+  }
+}
+
+function floatWinText(text) {
+  const el = document.createElement("div");
+  el.className = "float-text";
+  el.textContent = text;
+  el.style.left = (diceStage.offsetLeft + 35) + "px";
+  el.style.top = (diceStage.offsetTop + 5) + "px";
+  fxLayer.appendChild(el);
+  setTimeout(() => el.remove(), 850);
+}
+
+/* -----------------------------
+   Streak helper
+------------------------------ */
+function updateStreakDisplay() {
+  streakBadge.textContent = `Streak: ${streak}`;
+}
+
+/* -----------------------------
+   Form submit → call backend
+------------------------------ */
+form.addEventListener("submit", async (e) => {
   e.preventDefault();
   const t = betTypeSel.value;
   const wager = Math.max(1, Number(document.getElementById("wager").value || 1));
@@ -139,27 +226,57 @@ document.getElementById("betForm").addEventListener("submit", async (e) => {
   else if (t === "anyDoubles") selection = null;
   else selection = document.getElementById("ou").value;
 
+  startDiceRoll();
+
   const res = await fetch(`${API}/play`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ betType: t, selection, wager })
   });
   const data = await res.json();
+
   if (data.error) {
+    stopDiceRoll([1, 1], false);
     alert(data.error);
     return;
   }
 
-  // update bankroll
-  bank = +(bank + data.payout).toFixed(2);
-  bankEl.textContent = bank;
+  // let the spin show for a bit
+  setTimeout(() => {
+    stopDiceRoll(data.dice, data.win);
 
-  // show result
-  lastEl.textContent =
-    `Dice: ${data.dice.join(", ")}  | Total: ${data.total}  | ` +
-    (data.win ? `You WON $${data.payout}!` : `You LOST $${Math.abs(data.payout)}.`);
+    // bankroll
+    bank = +(bank + data.payout).toFixed(2);
+    bankEl.textContent = bank;
 
-  learnEl.textContent =
-    `Probability p=${data.prob}. Fair payout ≈ ${data.fairPayoutMultiplier}:1; ` +
-    `House pays ${data.housePayoutMultiplier}:1 (5% edge).`;
+    // streak logic
+    if (data.win) {
+      streak += 1;
+      spawnConfetti();
+      floatWinText(`+$${data.payout}`);
+    } else {
+      streak = 0;
+    }
+    updateStreakDisplay();
+
+    // show result
+    lastEl.textContent =
+      `Dice: ${data.dice.join(", ")}  | Total: ${data.total}  | ` +
+      (data.win ? `You WON $${data.payout}!` : `You LOST $${Math.abs(data.payout)}.`);
+
+    // learning line + streak bonus idea
+    learnEl.textContent =
+      `Probability p=${data.prob}. Fair payout ≈ ${data.fairPayoutMultiplier}:1; ` +
+      `House pays ${data.housePayoutMultiplier}:1 (5% edge).`;
+
+    // optional mini bonus every 3 wins
+    if (streak > 0 && streak % 3 === 0) {
+      bank += 2;
+      bankEl.textContent = bank;
+      learnEl.textContent += ` 🔥 Streak bonus! +$2`;
+      floatWinText("+$2 bonus");
+      spawnConfetti();
+    }
+
+  }, 650);
 });

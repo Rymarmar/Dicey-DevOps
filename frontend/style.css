@@ -53,15 +53,31 @@ body {
   border-radius: 1.25rem;
   padding: 1.5rem 1.5rem 1.8rem;
   box-shadow: 0 18px 55px rgba(0,0,0,0.25);
+  position: relative; /* for fx-layer */
+}
+
+.bank-row {
+  display: flex;
+  gap: .75rem;
+  align-items: center;
+  margin-bottom: 1rem;
 }
 
 .bank {
   font-weight: 700;
-  margin-bottom: 1rem;
   background: var(--accent-light);
   border-radius: .75rem;
   padding: .5rem .85rem;
   display: inline-block;
+}
+
+.streak-badge {
+  background: #eef2ff;
+  color: #312e81;
+  border-radius: .5rem;
+  padding: .35rem .6rem;
+  font-size: .8rem;
+  font-weight: 600;
 }
 
 .bet-form {
@@ -100,6 +116,47 @@ input[type="number"] {
   transform: translateY(1px);
 }
 
+/* dice area */
+.dice-stage {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  align-items: center;
+  min-height: 64px;
+  perspective: 600px;
+}
+
+.die {
+  width: 56px;
+  height: 56px;
+  background: #fff;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 1.45rem;
+  color: #0f172a;
+  box-shadow: 0 10px 25px rgba(15,23,42,0.12);
+  transition: transform .2s ease;
+  transform-style: preserve-3d;
+}
+
+.dice-stage.rolling .die {
+  animation: spin-die .55s linear infinite;
+}
+
+@keyframes spin-die {
+  0%   { transform: rotateX(0deg) rotateY(0deg); }
+  25%  { transform: rotateX(90deg) rotateY(0deg); }
+  50%  { transform: rotateX(90deg) rotateY(90deg); }
+  75%  { transform: rotateX(0deg) rotateY(90deg); }
+  100% { transform: rotateX(0deg) rotateY(0deg); }
+}
+
+.dice-stage.win .die {
+  box-shadow: 0 0 18px rgba(99, 102, 241, .55);
+}
+
 .result-line {
   font-weight: 600;
   margin-bottom: .4rem;
@@ -108,6 +165,43 @@ input[type="number"] {
 .learn-line {
   color: var(--muted);
   font-size: .85rem;
+}
+
+/* FX layer */
+.fx-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+
+/* confetti */
+.confetti {
+  position: absolute;
+  width: 7px;
+  height: 11px;
+  border-radius: 2px;
+  opacity: 0;
+  animation: confetti-pop .6s ease-out forwards;
+}
+
+@keyframes confetti-pop {
+  0% { opacity: 1; transform: translate(0, 0) rotate(0deg); }
+  100% { opacity: 0; transform: translate(var(--dx), -48px) rotate(150deg); }
+}
+
+/* floating win text */
+.float-text {
+  position: absolute;
+  font-weight: 700;
+  color: #22c55e;
+  font-size: 1rem;
+  animation: float-up .8s ease-out forwards;
+}
+
+@keyframes float-up {
+  0% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-30px); }
 }
 
 /* modal */

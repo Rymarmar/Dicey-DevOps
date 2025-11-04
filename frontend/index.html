@@ -13,8 +13,11 @@
     </header>
 
     <div class="game-card">
-      <div class="bank">
-        Bankroll: $<span id="bank">100</span>
+      <div class="bank-row">
+        <div class="bank">
+          Bankroll: $<span id="bank">100</span>
+        </div>
+        <div class="streak-badge" id="streakBadge">Streak: 0</div>
       </div>
 
       <form id="betForm" class="bet-form">
@@ -33,8 +36,17 @@
           <input id="wager" type="number" min="1" value="5" />
         </label>
 
-        <button type="submit" class="primary-btn">Roll</button>
+        <button type="submit" class="primary-btn" id="rollBtn">Roll</button>
       </form>
+
+      <!-- dice visual -->
+      <div class="dice-stage" id="diceStage">
+        <div class="die" id="die1" data-value="1">1</div>
+        <div class="die" id="die2" data-value="2">2</div>
+      </div>
+
+      <!-- fx layer for confetti / floating text -->
+      <div id="fx-layer" class="fx-layer"></div>
 
       <div id="last" class="result-line"></div>
       <div id="learn" class="learn-line"></div>
