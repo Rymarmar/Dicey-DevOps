@@ -26,7 +26,7 @@ const ruleBody = document.getElementById("ruleBody");
 
 let rollTimer = null;
 
-// rules content per mode
+// ----- rules content per mode -----
 const RULES = {
   sum: `
     <strong>Sum (2–12)</strong>
@@ -62,8 +62,20 @@ const RULES = {
   `
 };
 
+// global “learning mode” explainer shown under every rules tab
+const GLOBAL_EXPLAINER = `
+  <hr class="rule-sep" />
+  <h3 class="rule-subtitle">Understanding the numbers you see after a roll</h3>
+  <ul class="rule-explain">
+    <li><strong>Probability p=0.4167</strong> means this bet wins about 41.67% of the time (≈ 15 out of 36 dice outcomes).</li>
+    <li><strong>Fair payout ≈ 1.4:1</strong> means that if the casino paid with no profit, it would give you $1.40 profit for every $1 you bet on a win, because of that probability.</li>
+    <li><strong>House pays 1.32:1 (5% edge)</strong> means the game pays a little less than fair value — that 5% discount is the “house edge.”</li>
+    <li>This is the whole point of the app: even if you win sometimes, over many rolls the 5% edge makes the house come out ahead.</li>
+  </ul>
+`;
+
 function showRule(mode) {
-  ruleBody.innerHTML = RULES[mode] || "No rules found.";
+  ruleBody.innerHTML = (RULES[mode] || "No rules found.") + GLOBAL_EXPLAINER;
 }
 
 // modal open/close
@@ -131,7 +143,7 @@ betTypeSel.addEventListener("change", () => {
 });
 renderSelection();
 
-// show rules automatically the first time
+// show rules automatically the first time → “learning mode forever”
 openRules();
 
 /* -----------------------------
@@ -184,7 +196,6 @@ function spawnConfetti() {
     c.style.left = baseX + 20 + Math.random() * 50 + "px";
     c.style.top = baseY + 10 + "px";
     c.style.background = colors[i % colors.length];
-    // random horizontal drift
     const dx = (Math.random() * 60 - 30).toFixed(0) + "px";
     c.style.setProperty("--dx", dx);
     fxLayer.appendChild(c);
@@ -207,6 +218,47 @@ function floatWinText(text) {
 ------------------------------ */
 function updateStreakDisplay() {
   streakBadge.textContent = `Streak: ${streak}`;
+}
+
+/* -----------------------------
+   Explain loss/win in plain English
+------------------------------ */
+function buildOutcomeExplanation(betType, selection, data) {
+  const total = data.total;
+  const dice = data.dice;
+  const base = [];
+
+  if (data.win) {
+    base.push("You won because your bet condition was met.");
+  } else {
+    base.push("You lost because the roll didn't match your bet.");
+  }
+
+  if (betType === "sum") {
+    base.push(`You picked sum ${selection}, but the dice added to ${total}.`);
+    // sum probability from backend prob
+    base.push(`That sum only hits about ${(data.prob * 100).toFixed(1)}% of the time.`);
+  } else if (betType === "exactPair") {
+    base.push(`You picked the exact pair (${selection[0]}, ${selection[1]}), but the dice were (${dice[0]}, ${dice[1]}).`);
+    base.push("Exact ordered pairs are very rare — only 1 out of 36 rolls ≈ 2.78%.");
+  } else if (betType === "anyDoubles") {
+    base.push(`You needed both dice to match, but the roll was (${dice[0]}, ${dice[1]}).`);
+    base.push("Any doubles hit 6 out of 36 rolls → 1/6 → about 16.7%.");
+  } else if (betType === "overUnder7") {
+    const pick = selection;
+    if (pick === "over") {
+      base.push(`You picked over 7, but the total was ${total}.`);
+      base.push("Over 7 wins 15 out of 36 rolls → about 41.7%.");
+    } else if (pick === "under") {
+      base.push(`You picked under 7, but the total was ${total}.`);
+      base.push("Under 7 wins 15 out of 36 rolls → about 41.7%.");
+    } else {
+      base.push(`You picked exactly 7, but the total was ${total}.`);
+      base.push("Exactly 7 hits 6 out of 36 rolls → about 16.7%.");
+    }
+  }
+
+  return base.join(" ");
 }
 
 /* -----------------------------
@@ -264,12 +316,14 @@ form.addEventListener("submit", async (e) => {
       `Dice: ${data.dice.join(", ")}  | Total: ${data.total}  | ` +
       (data.win ? `You WON $${data.payout}!` : `You LOST $${Math.abs(data.payout)}.`);
 
-    // learning line + streak bonus idea
-    learnEl.textContent =
+    // ALWAYS-ON LEARNING MODE
+    const baseLine =
       `Probability p=${data.prob}. Fair payout ≈ ${data.fairPayoutMultiplier}:1; ` +
-      `House pays ${data.housePayoutMultiplier}:1 (5% edge).`;
+      `House pays ${data.housePayoutMultiplier}:1 (5% edge). `;
+    const outcomeLine = buildOutcomeExplanation(t, selection, data);
+    learnEl.textContent = baseLine + outcomeLine;
 
-    // optional mini bonus every 3 wins
+    // streak bonus every 3 wins
     if (streak > 0 && streak % 3 === 0) {
       bank += 2;
       bankEl.textContent = bank;

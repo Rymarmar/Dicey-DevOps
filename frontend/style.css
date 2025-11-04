@@ -279,6 +279,26 @@ input[type="number"] {
   margin-top: .25rem;
 }
 
+/* learning-mode extras in modal */
+.rule-sep {
+  border: none;
+  border-top: 1px solid #e2e8f0;
+  margin: 1rem 0 .75rem;
+}
+
+.rule-subtitle {
+  margin: 0 0 .4rem;
+  font-size: .9rem;
+  color: #0f172a;
+}
+
+.rule-explain {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: .85rem;
+  color: #475569;
+}
+
 .modal-footer {
   margin-top: 1rem;
 }
