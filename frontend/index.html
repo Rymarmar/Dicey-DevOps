@@ -6,33 +6,66 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>🎲 Dicey DevOps 🎲</h1>
+  <div class="app-shell">
+    <header class="topbar">
+      <h1>🎲 Dicey DevOps 🎲</h1>
+      <button id="openRules" class="ghost-btn">How to play</button>
+    </header>
 
-  <div class="bank">
-    Bankroll: $<span id="bank">100</span>
+    <div class="game-card">
+      <div class="bank">
+        Bankroll: $<span id="bank">100</span>
+      </div>
+
+      <form id="betForm" class="bet-form">
+        <label>Bet Type:
+          <select id="betType">
+            <option value="sum">Sum (2–12)</option>
+            <option value="exactPair">Exact Pair (e.g., 1,3)</option>
+            <option value="anyDoubles">Any Doubles</option>
+            <option value="overUnder7">Over / Under / Exactly 7</option>
+          </select>
+        </label>
+
+        <div id="selectionHost"><!-- dynamic controls go here --></div>
+
+        <label>Wager ($):
+          <input id="wager" type="number" min="1" value="5" />
+        </label>
+
+        <button type="submit" class="primary-btn">Roll</button>
+      </form>
+
+      <div id="last" class="result-line"></div>
+      <div id="learn" class="learn-line"></div>
+    </div>
   </div>
 
-  <form id="betForm">
-    <label>Bet Type:
-      <select id="betType">
-        <option value="sum">Sum (2–12)</option>
-        <option value="exactPair">Exact Pair (e.g., 1,3)</option>
-        <option value="anyDoubles">Any Doubles</option>
-        <option value="overUnder7">Over / Under / Exactly 7</option>
-      </select>
-    </label>
+  <!-- rules modal -->
+  <div id="rulesModal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>How Dicey DevOps works</h2>
+        <button id="closeRules" class="close-btn">×</button>
+      </div>
+      <p class="modal-sub">Pick a mode below to see its rules.</p>
 
-    <div id="selectionHost"><!-- dynamic controls go here --></div>
+      <div class="rule-tabs">
+        <button data-mode="sum" class="rule-tab active">Sum (2–12)</button>
+        <button data-mode="exactPair" class="rule-tab">Exact Pair</button>
+        <button data-mode="anyDoubles" class="rule-tab">Any Doubles</button>
+        <button data-mode="overUnder7" class="rule-tab">Over / Under / 7</button>
+      </div>
 
-    <label>Wager ($):
-      <input id="wager" type="number" min="1" value="5" />
-    </label>
+      <div id="ruleBody" class="rule-body">
+        <!-- gets filled by script.js -->
+      </div>
 
-    <button type="submit">Roll</button>
-  </form>
-
-  <div id="last"></div>
-  <div id="learn"></div>
+      <div class="modal-footer">
+        <button id="gotIt" class="primary-btn full">Got it, let me play</button>
+      </div>
+    </div>
+  </div>
 
   <script src="script.js"></script>
 </body>
