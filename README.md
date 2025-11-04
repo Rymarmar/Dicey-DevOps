@@ -3,7 +3,9 @@
 A tiny probability game that demonstrates **risk vs. reward** and teaches **expected value**.  
 Frontend (HTML/JS) talks to a Node/Express API. Docker Compose serves both.
 
-## Project Structure
+---
+
+## 🧱 Project Structure
 Dicey-DevOps/
 ├─ backend/
 │ ├─ server.js
@@ -19,23 +21,30 @@ Dicey-DevOps/
 ├─ .gitignore
 └─ README.md
 
-shell
+yaml
 Copy code
 
-## Quick Start (Docker)
+---
+
+## 🚀 Quick Start (Docker)
+
+From the **project root**:
+
 ```bash
-# from repo root
+# Build and start both backend + frontend
 docker compose up --build
-Frontend → http://localhost:3000
+Then open:
 
-Backend health → http://localhost:8080/
+🎮 Frontend: http://localhost:3000
 
-Demo roll → http://localhost:8080/roll
+⚙️ Backend health: http://localhost:8080/
 
-Gameplay (MVP)
-Start bankroll: $100 (in-browser state for demo)
+🎲 Demo roll: http://localhost:8080/roll
 
-Bet types:
+🧩 Gameplay Overview
+Start bankroll: $100 (browser-only state)
+
+Bet Types:
 
 Sum (2–12)
 
@@ -43,55 +52,47 @@ Exact Pair (e.g., 1,3)
 
 Any Doubles
 
-Over/Under/Exactly 7
+Over / Under / Exactly 7
 
-Wager any whole dollar ≥ 1
+Each result shows:
 
-Result shows: dice, total, win/loss, payout, and a learning blurb with:
+🎲 Dice and total
 
-Probability p
+✅ Win/Loss and payout
 
-Fair profit multiplier ≈ (1/p) - 1
+📊 Probability, fair payout, and house edge (5%)
 
-House multiplier (5% edge) used to compute your payout
-
-Local Testing Guide
-A) Test through the UI (fastest)
-Start the stack:
-
+🧪 Local Testing Guide
+A) Run through Docker (recommended)
 bash
 Copy code
 docker compose up --build
-Open http://localhost:3000.
+Then visit:
 
-Pick a Bet Type, choose the selection, enter a Wager, click Roll.
+http://localhost:3000 → Play the game
 
-Watch Bankroll change and read the probability/EV line.
+http://localhost:8080 → Should show “Dicey DevOps backend running”
 
+http://localhost:8080/roll → Example output: {"dice":[x,y],"total":z}
 
-## How to test (quick walk-through)
+B) Run manually (without Docker)
+# 1. Start backend
+cd backend
+npm install
+npm run start
 
-1) **Start everything**
-```bash
+# 2. Open frontend
+# Simply open frontend/index.html in your browser
+
+🧹 Docker Cleanup / Rebuild
+
+If you need to reset your environment or start clean:
+
+# Stop and remove all running containers
+docker compose down
+
+# Remove old images (optional)
+docker rmi dicey_backend nginx:alpine
+
+# Rebuild everything from scratch
 docker compose up --build
-Hit the backend quickly
-
-Open http://localhost:8080/ → should say “Dicey DevOps backend running”
-
-Open http://localhost:8080/roll → you’ll see {"dice":[x,y],"total":z}
-
-Play in the browser
-
-Go to http://localhost:3000
-
-Choose a bet (e.g., Sum 7 with $5)
-
-Click Roll → check the Bankroll, Result, and Learning text
-
-Confirm API via curl
-
-bash
-Copy code
-curl -X POST http://localhost:8080/play \
-  -H "Content-Type: application/json" \
-  -d '{"betType":"overUnder7","selection":"under","wager":5}'
