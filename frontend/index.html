@@ -17,7 +17,20 @@
         <div class="bank">
           Bankroll: $<span id="bank">100</span>
         </div>
+        <label class="difficulty-sel">
+          Level:
+          <select id="difficulty">
+            <option value="low">Low ($50)</option>
+            <option value="mid" selected>Medium ($100)</option>
+            <option value="high">High ($1000)</option>
+          </select>
+        </label>
         <div class="streak-badge" id="streakBadge">Streak: 0</div>
+      </div>
+
+      <div class="meta-line">
+        <span id="runRolls">Run rolls: 0</span>
+        <span id="bestScore">Best for this setup: 0 rolls</span>
       </div>
 
       <form id="betForm" class="bet-form">
