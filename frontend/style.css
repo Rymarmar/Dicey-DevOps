@@ -33,6 +33,11 @@ body {
 
 .topbar h1 { margin: 0; }
 
+.topbar-actions {
+  display: flex;
+  gap: .5rem;
+}
+
 .ghost-btn {
   background: transparent;
   border: 1px solid rgba(255,255,255,0.4);
@@ -218,7 +223,7 @@ input[type="number"] {
   100% { opacity: 0; transform: translateY(-30px); }
 }
 
-/* modal stuff stays the same */
+/* modal shared */
 .modal {
   position: fixed;
   inset: 0;
@@ -308,3 +313,82 @@ input[type="number"] {
 .modal-footer { margin-top: 1rem; }
 
 .full { width: 100%; justify-content: center; }
+
+/* new UI bits */
+
+.best-score-chip {
+  background: rgba(250, 204, 21, 0.12);
+  border: 1px solid rgba(250, 204, 21, 0.6);
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  color: #854d0e;
+  font-weight: 600;
+}
+
+.best-score-chip.flash {
+  animation: best-pop 0.7s ease-out;
+}
+
+@keyframes best-pop {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.05); background: rgba(250, 204, 21, 0.5); }
+  100% { transform: scale(1); }
+}
+
+/* stability / momentum bar */
+.stability-wrap {
+  width: 100%;
+  background: #e2e8f0;
+  border-radius: 9999px;
+  height: 8px;
+  margin-bottom: 1rem;
+  overflow: hidden;
+}
+.stability-fill {
+  width: 35%;
+  height: 100%;
+  background: linear-gradient(90deg, #22c55e, #6366f1);
+  transition: width .35s ease-out;
+}
+
+/* daily challenge banner */
+.daily-challenge {
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(99, 102, 241, 0.4);
+  border-radius: .7rem;
+  padding: 0.4rem .75rem;
+  font-size: .78rem;
+  margin-bottom: .6rem;
+  display: flex;
+  gap: .5rem;
+  align-items: center;
+}
+.daily-challenge::before {
+  content: "📦 DevOps challenge:";
+  font-weight: 600;
+  color: #312e81;
+}
+.daily-challenge.hidden { display: none; }
+
+/* stats body */
+.stats-body {
+  background: #f8fafc;
+  border-radius: .75rem;
+  padding: .75rem .85rem;
+  font-size: .85rem;
+  display: grid;
+  gap: .35rem;
+}
+.stats-body h4 {
+  margin: .4rem 0 .2rem;
+}
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: .35rem;
+}
+.stats-pill {
+  background: #e2e8f0;
+  border-radius: .6rem;
+  padding: .35rem .5rem;
+}

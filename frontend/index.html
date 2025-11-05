@@ -9,10 +9,16 @@
   <div class="app-shell">
     <header class="topbar">
       <h1>🎲 Dicey DevOps 🎲</h1>
-      <button id="openRules" class="ghost-btn">How to play</button>
+      <div class="topbar-actions">
+        <button id="openStats" class="ghost-btn">Stats</button>
+        <button id="openRules" class="ghost-btn">How to play</button>
+      </div>
     </header>
 
     <div class="game-card">
+      <!-- challenge banner -->
+      <div id="dailyChallenge" class="daily-challenge hidden"></div>
+
       <div class="bank-row">
         <div class="bank">
           Bankroll: $<span id="bank">100</span>
@@ -30,7 +36,12 @@
 
       <div class="meta-line">
         <span id="runRolls">Run rolls: 0</span>
-        <span id="bestScore">Best for this setup: 0 rolls</span>
+        <span id="bestScore" class="best-score-chip">🔥 Best run on this setup: 0</span>
+      </div>
+
+      <!-- stability / momentum bar -->
+      <div class="stability-wrap">
+        <div id="stabilityFill" class="stability-fill"></div>
       </div>
 
       <form id="betForm" class="bet-form">
@@ -82,12 +93,24 @@
         <button data-mode="overUnder7" class="rule-tab">Over / Under / 7</button>
       </div>
 
-      <div id="ruleBody" class="rule-body">
-        <!-- filled by script.js -->
-      </div>
+      <div id="ruleBody" class="rule-body"></div>
 
       <div class="modal-footer">
         <button id="gotIt" class="primary-btn full">Got it, let me play</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- stats modal -->
+  <div id="statsModal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>🎯 Session Stats</h2>
+        <button id="closeStats" class="close-btn">×</button>
+      </div>
+      <p class="modal-sub">Observability for your dice runs.</p>
+      <div id="statsBody" class="stats-body">
+        <!-- filled by script.js -->
       </div>
     </div>
   </div>

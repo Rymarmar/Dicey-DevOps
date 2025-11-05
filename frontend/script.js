@@ -10,7 +10,23 @@ const STARTING_BANK_BY_DIFF = {
 let difficulty = "mid";
 let bank = STARTING_BANK_BY_DIFF[difficulty];
 let streak = 0;
-let runRolls = 0; // how many rolls in current run
+let runRolls = 0;
+
+// session stats (frontend only)
+const STATS = {
+  totalRolls: 0,
+  wins: 0,
+  losses: 0,
+  netProfit: 0,
+  biggestWin: 0,
+  biggestLoss: 0,
+  byBetType: {
+    sum: 0,
+    exactPair: 0,
+    anyDoubles: 0,
+    overUnder7: 0,
+  }
+};
 
 // UI refs
 const betTypeSel = document.getElementById("betType");
@@ -25,19 +41,27 @@ const difficultySel = document.getElementById("difficulty");
 const runRollsEl = document.getElementById("runRolls");
 const bestScoreEl = document.getElementById("bestScore");
 
+const stabilityFill = document.getElementById("stabilityFill");
+const dailyChallenge = document.getElementById("dailyChallenge");
+
 // dice + fx
 const diceStage = document.getElementById("diceStage");
 const die1 = document.getElementById("die1");
 const die2 = document.getElementById("die2");
 const fxLayer = document.getElementById("fx-layer");
 
-// modal
+// modals
 const rulesModal = document.getElementById("rulesModal");
 const openRulesBtn = document.getElementById("openRules");
 const closeRulesBtn = document.getElementById("closeRules");
 const gotItBtn = document.getElementById("gotIt");
 const ruleTabs = document.querySelectorAll(".rule-tab");
 const ruleBody = document.getElementById("ruleBody");
+
+const statsModal = document.getElementById("statsModal");
+const openStatsBtn = document.getElementById("openStats");
+const closeStatsBtn = document.getElementById("closeStats");
+const statsBody = document.getElementById("statsBody");
 
 let rollTimer = null;
 
@@ -123,6 +147,17 @@ function activateRuleTab(mode) {
 }
 
 /* -----------------------------
+   Stats modal wiring
+------------------------------ */
+openStatsBtn.addEventListener("click", () => {
+  renderStats();
+  statsModal.classList.remove("hidden");
+});
+closeStatsBtn.addEventListener("click", () => {
+  statsModal.classList.add("hidden");
+});
+
+/* -----------------------------
    Selection controls
 ------------------------------ */
 function h(html) { selectionHost.innerHTML = html; }
@@ -158,12 +193,12 @@ function renderSelection() {
 betTypeSel.addEventListener("change", () => {
   renderSelection();
   activateRuleTab(betTypeSel.value);
-  // also refresh best score for this new mode
   updateBestScoreDisplay();
+  maybeRefreshChallenge();
 });
 renderSelection();
 
-// show rules first time = always-on learning mode
+// show rules the first time
 openRules();
 
 /* -----------------------------
@@ -202,8 +237,7 @@ function stopDiceRoll(finalDice, isWin = false) {
 /* -----------------------------
    FX
 ------------------------------ */
-function spawnConfetti() {
-  const count = 12;
+function spawnConfetti(count = 12) {
   const baseX = diceStage.offsetLeft + 10;
   const baseY = diceStage.offsetTop + 5;
   const colors = ["#6366f1", "#f97316", "#22c55e", "#e11d48"];
@@ -230,6 +264,13 @@ function floatWinText(text) {
   setTimeout(() => el.remove(), 850);
 }
 
+function celebrateNewBest(newVal) {
+  spawnConfetti(22);
+  floatWinText(`NEW BEST: ${newVal}!`);
+  bestScoreEl.classList.add("flash");
+  setTimeout(() => bestScoreEl.classList.remove("flash"), 700);
+}
+
 /* -----------------------------
    Streak + run display
 ------------------------------ */
@@ -244,23 +285,49 @@ function updateRunDisplay() {
    High score per (mode,difficulty)
 ------------------------------ */
 function makeHsKey() {
-  // e.g. dd-hs-sum-mid
   return `dd-hs-${betTypeSel.value}-${difficulty}`;
 }
-
 function getHighScore() {
   const k = makeHsKey();
   return Number(localStorage.getItem(k) || 0);
 }
-
 function saveHighScore(val) {
   const k = makeHsKey();
   localStorage.setItem(k, String(val));
 }
-
 function updateBestScoreDisplay() {
   const best = getHighScore();
-  bestScoreEl.textContent = `Best for this setup: ${best} rolls`;
+  bestScoreEl.textContent = `🔥 Best run on this setup: ${best}`;
+}
+
+/* -----------------------------
+   Stability bar
+------------------------------ */
+function updateStabilityBar() {
+  const start = STARTING_BANK_BY_DIFF[difficulty];
+  let pct = Math.min(bank / start, 1.4);
+  stabilityFill.style.width = (pct * 100 / 1.4) + "%";
+}
+
+/* -----------------------------
+   Daily / session challenge
+------------------------------ */
+const CHALLENGES = [
+  { mode: "overUnder7", text: "Win 3 times on Over / Under / 7" },
+  { mode: "sum", text: "Hit a Sum bet at least once" },
+  { mode: "anyDoubles", text: "Catch a doubles win" },
+  { mode: "exactPair", text: "Attempt 1 Exact Pair (1/36) roll" },
+];
+let currentChallenge = null;
+
+function pickChallenge() {
+  const pick = CHALLENGES[Math.floor(Math.random() * CHALLENGES.length)];
+  currentChallenge = pick;
+  dailyChallenge.textContent = pick.text;
+  dailyChallenge.classList.remove("hidden");
+}
+function maybeRefreshChallenge() {
+  // placeholder if we want to react to mode later
 }
 
 /* -----------------------------
@@ -275,14 +342,48 @@ function resetRun() {
   updateStreakDisplay();
   lastEl.textContent = "";
   learnEl.textContent = "";
+  updateStabilityBar();
 }
 
-/* change difficulty = new run */
+/* difficulty change = new run */
 difficultySel.addEventListener("change", () => {
   difficulty = difficultySel.value;
   resetRun();
   updateBestScoreDisplay();
 });
+
+/* -----------------------------
+   Stats rendering
+------------------------------ */
+function renderStats() {
+  const winRate = STATS.totalRolls
+    ? ((STATS.wins / STATS.totalRolls) * 100).toFixed(1)
+    : "0.0";
+
+  // find most played bet type
+  const entries = Object.entries(STATS.byBetType);
+  let mostPlayed = "-";
+  if (entries.length) {
+    entries.sort((a, b) => b[1] - a[1]);
+    mostPlayed = entries[0][0] + ` (${entries[0][1]})`;
+  }
+
+  statsBody.innerHTML = `
+    <div class="stats-grid">
+      <div class="stats-pill"><strong>Total rolls:</strong> ${STATS.totalRolls}</div>
+      <div class="stats-pill"><strong>Wins:</strong> ${STATS.wins}</div>
+      <div class="stats-pill"><strong>Losses:</strong> ${STATS.losses}</div>
+      <div class="stats-pill"><strong>Win rate:</strong> ${winRate}%</div>
+      <div class="stats-pill"><strong>Net profit:</strong> $${STATS.netProfit.toFixed(2)}</div>
+      <div class="stats-pill"><strong>Biggest win:</strong> $${STATS.biggestWin.toFixed(2)}</div>
+      <div class="stats-pill"><strong>Biggest loss:</strong> $${Math.abs(STATS.biggestLoss).toFixed(2)}</div>
+      <div class="stats-pill"><strong>Most played bet:</strong> ${mostPlayed}</div>
+    </div>
+    <p style="margin-top:.5rem; font-size:.75rem; color:#94a3b8;">
+      These stats are browser-only for this session. Use them to talk about observability / player behavior in your report.
+    </p>
+  `;
+}
 
 /* -----------------------------
    Explain outcome
@@ -330,12 +431,11 @@ function buildOutcomeExplanation(betType, selection, data) {
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  // don't let them bet more than they have
   const t = betTypeSel.value;
   const wagerInput = document.getElementById("wager");
   let wager = Math.max(1, Number(wagerInput.value || 1));
   if (wager > bank) {
-    wager = bank; // cap to current bank
+    wager = bank;
     wagerInput.value = wager;
   }
 
@@ -366,22 +466,37 @@ form.addEventListener("submit", async (e) => {
   setTimeout(() => {
     stopDiceRoll(data.dice, data.win);
 
-    // one more roll counted
+    // update session stats baseline
+    STATS.totalRolls += 1;
+    STATS.byBetType[t] = (STATS.byBetType[t] || 0) + 1;
+
     runRolls += 1;
     updateRunDisplay();
 
     // update bankroll
     bank = +(bank + data.payout).toFixed(2);
-    if (bank < 0) bank = 0; // no negatives
+    if (bank < 0) bank = 0;
     bankEl.textContent = bank;
+    updateStabilityBar();
+
+    // update stats profit
+    STATS.netProfit = +(STATS.netProfit + data.payout).toFixed(2);
+    if (data.payout > 0 && data.payout > STATS.biggestWin) {
+      STATS.biggestWin = data.payout;
+    }
+    if (data.payout < 0 && data.payout < STATS.biggestLoss) {
+      STATS.biggestLoss = data.payout;
+    }
 
     // streak logic
     if (data.win) {
       streak += 1;
+      STATS.wins += 1;
       spawnConfetti();
       floatWinText(`+$${data.payout}`);
     } else {
       streak = 0;
+      STATS.losses += 1;
     }
     updateStreakDisplay();
 
@@ -401,9 +516,11 @@ form.addEventListener("submit", async (e) => {
     if (streak > 0 && streak % 3 === 0) {
       bank += 2;
       bankEl.textContent = bank;
+      updateStabilityBar();
       learnEl.textContent += ` 🔥 Streak bonus! +$2`;
       floatWinText("+$2 bonus");
       spawnConfetti();
+      STATS.netProfit = +(STATS.netProfit + 2).toFixed(2);
     }
 
     // if run is dead → record high score & reset
@@ -411,16 +528,18 @@ form.addEventListener("submit", async (e) => {
       const best = getHighScore();
       if (runRolls > best) {
         saveHighScore(runRolls);
+        celebrateNewBest(runRolls);
       }
       updateBestScoreDisplay();
       alert("Run over! You hit $0. Starting a new run at this difficulty.");
       resetRun();
       updateBestScoreDisplay();
     } else {
-      // alive → still update best in case of higher roll count
+      // alive → still update best
       const best = getHighScore();
       if (runRolls > best) {
         saveHighScore(runRolls);
+        celebrateNewBest(runRolls);
         updateBestScoreDisplay();
       }
     }
@@ -432,3 +551,5 @@ form.addEventListener("submit", async (e) => {
 bankEl.textContent = bank;
 updateRunDisplay();
 updateBestScoreDisplay();
+updateStabilityBar();
+pickChallenge();
