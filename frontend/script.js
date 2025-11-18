@@ -1,4 +1,6 @@
-const API = "http://localhost:8080";
+const API = window.location.hostname === "localhost"
+  ? "http://localhost:8080"
+  : "https://dicey-devops.onrender.com"; 
 
 // run/config state
 const STARTING_BANK_BY_DIFF = {
