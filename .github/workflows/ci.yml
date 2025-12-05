@@ -33,12 +33,12 @@ jobs:
 
       - name: Create deployment ZIP artifact
         run: |
-          mkdir dist
-          zip -r "dist/dicey-devops-${{ steps.version.outputs.VERSION }}-${{ github.sha::0:7 }}.zip" \
-              backend frontend Dockerfile docker-compose.yml README.md VERSION
+          mkdir -p dist
+          zip -r "dist/dicey-devops-${{ steps.version.outputs.VERSION }}-${{ github.sha }}.zip" \
+            backend frontend Dockerfile docker-compose.yml README.md VERSION monitoring
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: dicey-devops-${{ steps.version.outputs.VERSION }}
-          path: dist/
+          path: dist
