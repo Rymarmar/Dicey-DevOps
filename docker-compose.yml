@@ -1,10 +1,15 @@
 version: "3.8"
+
 services:
   backend:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dicey_backend
     ports:
       - "8080:8080"
-    container_name: dicey_backend
+    environment:
+      - PORT=8080
 
   frontend:
     image: nginx:alpine
@@ -12,4 +17,24 @@ services:
     volumes:
       - ./frontend:/usr/share/nginx/html:ro
     ports:
-      - "3000:80"
+      - "80:80"    # main website
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+    ports:
+      - "9090:9090"
+    depends_on:
+      - backend
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus

@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-test-package:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Use Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install backend deps
+        working-directory: backend
+        run: npm install
+
+      - name: Run backend tests
+        working-directory: backend
+        run: npm test
+
+      - name: Read version
+        id: version
+        run: echo "VERSION=$(cat VERSION)" >> $GITHUB_OUTPUT
+
+      - name: Create deployment ZIP artifact
+        run: |
+          mkdir dist
+          zip -r "dist/dicey-devops-${{ steps.version.outputs.VERSION }}-${{ github.sha::0:7 }}.zip" \
+              backend frontend Dockerfile docker-compose.yml README.md VERSION
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dicey-devops-${{ steps.version.outputs.VERSION }}
+          path: dist/

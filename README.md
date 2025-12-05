@@ -3,6 +3,14 @@
 A tiny probability game that demonstrates **risk vs. reward** and teaches **expected value**.  
 Frontend (HTML/JS) talks to a Node/Express API. Docker Compose serves both.
 
+Web app deployed via Docker + GitHub Actions
+
+Open source on GitHub (MIT license)
+
+Includes unit tests for roll logic and bankroll calculations
+
+Optionally monitored via Prometheus + Grafana (“deployment success rate” metrics)
+
 ---
 
 ---
