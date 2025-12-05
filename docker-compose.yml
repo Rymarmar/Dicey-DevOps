@@ -17,7 +17,7 @@ services:
     volumes:
       - ./frontend:/usr/share/nginx/html:ro
     ports:
-      - "80:80"    # main website
+      - "80:80"  # main website
 
   prometheus:
     image: prom/prometheus:latest
@@ -30,6 +30,7 @@ services:
       - "9090:9090"
     depends_on:
       - backend
+      - node-exporter
 
   grafana:
     image: grafana/grafana:latest
@@ -38,3 +39,18 @@ services:
       - "3000:3000"
     depends_on:
       - prometheus
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    restart: unless-stopped
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - --path.procfs=/host/proc
+      - --path.sysfs=/host/sys
+      - --path.rootfs=/rootfs

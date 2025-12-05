@@ -5,3 +5,7 @@ scrape_configs:
   - job_name: "dicey-backend"
     static_configs:
       - targets: ["backend:8080"]
+
+  - job_name: "node"
+    static_configs:
+      - targets: ["node-exporter:9100"]
