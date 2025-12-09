@@ -42,20 +42,16 @@ jobs:
         run: |
           sed -i "s/DEV_SEMVER/${{ steps.version.outputs.VERSION }}/g" docs/itManual.tex
           sed -i "s/DEV_HASH/${{ steps.githash.outputs.GITHASH }}/g" docs/itManual.tex
-
-      # Make LaTeX support files (class/bib styles) visible in the root dir
-      - name: Prepare LaTeX support files
-        run: |
-          cp docs/*.cls .
-          cp docs/*.bst . || true
+          sed -i "s/GITHASHHERE/${{ steps.githash.outputs.GITHASH }}/g" docs/prologue.tex
 
       # Compile LaTeX manual (Overleaf template) into a PDF
       - name: Compile LaTeX manual
         uses: xu-cheng/latex-action@v3
         with:
-          root_file: docs/itManual.tex
+          working_directory: ./docs      # <--- key fix
+          root_file: itManual.tex        # <--- file name only
           latexmk_shell_escape: true
-          extra_system_packages: "py3-pygments"
+          extra_system_packages: py3-pygments
 
       # Create deployment ZIP artifact including app + docs
       - name: Create deployment ZIP artifact
