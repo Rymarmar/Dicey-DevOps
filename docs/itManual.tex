@@ -35,8 +35,8 @@
 \setminted{breaklines, breakanywhere, fontsize=\small}
 
 
-% Does not work with LaTeX=>PDF
-\usepackage[pdfmark, 
+% Hyperlinks for PDF output (CI uses pdfLaTeX)
+\usepackage[
 breaklinks=true, 
 colorlinks=true,
 citecolor=blue,
@@ -45,6 +45,7 @@ menucolor=black,
 pagecolor=black,
 urlcolor=blue
 ]{hyperref} % links in pdf
+
 
 %\usepackage[colorlinks]{hyperref} % links in dvi
 \usepackage{listings}
