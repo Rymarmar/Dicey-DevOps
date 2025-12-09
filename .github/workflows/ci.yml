@@ -27,36 +27,35 @@ jobs:
         working-directory: backend
         run: npm test
 
-      # Read semantic base version from VERSION file (e.g., 1.0.0)
+      # Base semantic version from VERSION file (e.g., 1.0.0)
       - name: Read base version
         id: version
-        run: echo "VERSION=$(cat VERSION)" >> "$GITHUB_OUTPUT"
+        run: echo "BASE_VERSION=$(cat VERSION)" >> "$GITHUB_OUTPUT"
 
-      # Build full version: base version + GitHub Actions run number
-      # Example: 1.0.0.23
-      - name: Compute full build version
-        id: buildmeta
-        run: |
-          BASE_VERSION="${{ steps.version.outputs.VERSION }}"
-          RUN_NUM="${GITHUB_RUN_NUMBER}"
-          echo "FULL_VERSION=${BASE_VERSION}.${RUN_NUM}" >> "$GITHUB_OUTPUT"
+      # Append GitHub run number to get 1.0.0.<run>
+      - name: Compute full version (base + build number)
+        id: buildver
+        run: echo "FULL_VERSION=${{ steps.version.outputs.BASE_VERSION }}.${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
 
-      # Short Git hash for this commit
+      # Short git hash for this commit
       - name: Compute Git hash
         id: githash
         run: echo "GITHASH=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
 
-      # Inject full semantic version + git hash into the manual's \VERSION macro
+      # Inject semantic version + git hash into the manual's \VERSION macro
+      # (itManual.tex has: \newcommand{\VERSION}{Version DEV_SEMVER (Git DEV_HASH)})
       - name: Inject version info into manual
+        working-directory: docs
         run: |
-          sed -i "s/DEV_SEMVER/${{ steps.buildmeta.outputs.FULL_VERSION }}/g" docs/itManual.tex
-          sed -i "s/DEV_HASH/${{ steps.githash.outputs.GITHASH }}/g" docs/itManual.tex
+          sed -i "s/DEV_SEMVER/${{ steps.buildver.outputs.FULL_VERSION }}/g" itManual.tex
+          sed -i "s/DEV_HASH/${{ steps.githash.outputs.GITHASH }}/g" itManual.tex
 
       # Compile LaTeX manual (Overleaf template) into a PDF
       - name: Compile LaTeX manual
         uses: xu-cheng/latex-action@v3
         with:
-          root_file: docs/itManual.tex
+          root_file: itManual.tex          # IMPORTANT: no docs/ prefix
+          working_directory: docs          # IMPORTANT: run inside docs/
           latexmk_shell_escape: true
           extra_system_packages: "py3-pygments"
 
@@ -64,19 +63,19 @@ jobs:
       - name: Create deployment ZIP artifact
         run: |
           mkdir -p dist
-          zip -r "dist/dicey-devops-${{ steps.buildmeta.outputs.FULL_VERSION }}-${{ steps.githash.outputs.GITHASH }}.zip" \
+          zip -r "dist/dicey-devops-${{ steps.buildver.outputs.FULL_VERSION }}-${{ steps.githash.outputs.GITHASH }}.zip" \
             backend frontend Dockerfile docker-compose.yml README.md VERSION monitoring docs
 
       # Upload deployment ZIP
       - name: Upload deployment artifact
         uses: actions/upload-artifact@v4
         with:
-          name: dicey-devops-${{ steps.buildmeta.outputs.FULL_VERSION }}-${{ steps.githash.outputs.GITHASH }}
+          name: dicey-devops-${{ steps.buildver.outputs.FULL_VERSION }}-${{ steps.githash.outputs.GITHASH }}
           path: dist
 
       # Upload just the manual PDF separately for the demo
       - name: Upload manual PDF
         uses: actions/upload-artifact@v4
         with:
-          name: manual-${{ steps.buildmeta.outputs.FULL_VERSION }}-${{ steps.githash.outputs.GITHASH }}
+          name: manual-${{ steps.buildver.outputs.FULL_VERSION }}-${{ steps.githash.outputs.GITHASH }}
           path: docs/itManual.pdf
