@@ -554,4 +554,6 @@ bankEl.textContent = bank;
 updateRunDisplay();
 updateBestScoreDisplay();
 updateStabilityBar();
-pickChallenge();
+
+// Temporarily disable daily challenge banner
+// pickChallenge();
