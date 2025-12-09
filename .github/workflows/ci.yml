@@ -49,7 +49,7 @@ jobs:
         with:
           root_file: docs/itManual.tex
           latexmk_shell_escape: true
-          extra_system_packages: "python3-pygments"
+          extra_system_packages: "py3-pygments"
 
       # Create deployment ZIP artifact including app + docs
       - name: Create deployment ZIP artifact
