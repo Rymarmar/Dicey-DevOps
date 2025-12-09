@@ -43,11 +43,13 @@ jobs:
           sed -i "s/DEV_SEMVER/${{ steps.version.outputs.VERSION }}/g" docs/itManual.tex
           sed -i "s/DEV_HASH/${{ steps.githash.outputs.GITHASH }}/g" docs/itManual.tex
 
-      # Compile LaTeX manual (your Overleaf template) into a PDF
+      # Compile LaTeX manual (Overleaf template) into a PDF
       - name: Compile LaTeX manual
         uses: xu-cheng/latex-action@v3
         with:
           root_file: docs/itManual.tex
+          latexmk_shell_escape: true
+          extra_system_packages: "python3-pygments"
 
       # Create deployment ZIP artifact including app + docs
       - name: Create deployment ZIP artifact
