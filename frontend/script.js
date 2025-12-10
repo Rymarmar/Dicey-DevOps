@@ -556,4 +556,4 @@ updateBestScoreDisplay();
 updateStabilityBar();
 
 // Temporarily disable daily challenge banner
-// pickChallenge();
+pickChallenge();
